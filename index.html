@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="Interactive alignment of Core 16 CT imagery, physical properties, geochemistry, and model outputs.">
+  <meta name="theme-color" content="#071314">
+  <title>Core 16 · Sea-Ice Profile</title>
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&f[]=boska@400,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to profile</a>
+  <canvas id="iceField" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <header class="title-card" id="titleCard">
+    <a class="brand" href="#explore" aria-label="Core 16 home">
+      <svg class="brand-mark" aria-hidden="true" viewBox="0 0 42 42" fill="none">
+        <path d="M21 3 34 10.5v21L21 39 8 31.5v-21L21 3Z" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M21 3v36M8 10.5l26 21M34 10.5 8 31.5" stroke="currentColor" stroke-width="1" opacity=".52"/>
+        <circle cx="21" cy="21" r="4" fill="currentColor"/>
+      </svg>
+      <span><small>Interactive core exhibit</small><b>Core 16</b></span>
+    </a>
+    <div class="title-copy">
+      <p class="eyebrow">Sea ice · 0–163 cm</p>
+      <h1>Inside a <em>sea-ice core</em></h1>
+      <p>Explore CT void structure alongside brine, porosity, density, geochemistry, and model results on one depth axis.</p>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="stage" aria-label="Core tomography viewer">
+      <div class="video-shell" id="videoShell">
+        <video id="coreVideo" playsinline muted loop preload="metadata" aria-label="Selected CT core visualization"></video>
+        <div class="video-placeholder" id="videoPlaceholder">
+          <svg aria-hidden="true" viewBox="0 0 120 260" fill="none">
+            <rect x="28" y="5" width="64" height="250" rx="32" stroke="currentColor" stroke-width="1" opacity=".35"/>
+            <path d="M45 18c31 26-8 34 27 62S43 126 72 153s-18 58 3 87" stroke="currentColor" stroke-width="1.4" opacity=".75"/>
+            <g fill="currentColor" opacity=".48"><circle cx="49" cy="57" r="4"/><circle cx="72" cy="105" r="7"/><circle cx="48" cy="146" r="3"/><circle cx="68" cy="191" r="5"/><circle cx="52" cy="221" r="2"/></g>
+          </svg>
+          <p>Loading CT segment…</p>
+        </div>
+        <div class="scan-line" aria-hidden="true"></div>
+        <button class="play-control" id="playControl" aria-label="Play CT video">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z" fill="currentColor"/></svg>
+        </button>
+        <p class="video-caption"><span id="videoSegment">A1</span><b id="videoRange">0–20 cm</b></p>
+      </div>
+
+      <aside class="depth-rail" aria-label="Core depth navigator">
+        <div class="rail-head"><span>Depth</span><b>cm</b></div>
+        <div class="rail-track" id="depthRail"></div>
+        <div class="rail-selection" id="railSelection" aria-hidden="true"></div>
+      </aside>
+    </section>
+
+    <section class="placard explainer" aria-live="polite">
+      <div class="swap" id="sampleSummary">
+        <p class="eyebrow">Selected sample</p>
+        <h2><span id="sampleRange">0–5 cm</span> · <em id="sampleSegment">A1</em></h2>
+        <p class="body" id="sampleNarrative">Physical measurements at 1 cm are aggregated over the exact geochemical sampling interval.</p>
+        <dl class="facts">
+          <div><dt>Brine</dt><dd id="factBrine">—</dd></div>
+          <div><dt>Porosity</dt><dd id="factPorosity">—</dd></div>
+          <div><dt>Density</dt><dd id="factDensity">—</dd></div>
+          <div><dt id="factGeoLabel">Geochemistry</dt><dd id="factGeo">—</dd></div>
+          <div><dt id="factModelLabel">Model</dt><dd id="factModel">—</dd></div>
+          <div><dt>Coverage</dt><dd id="factCoverage">—</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <aside class="placard console" id="console" aria-label="Exhibit controls">
+      <div class="console-head">
+        <div><p class="eyebrow">Core controls</p><p class="data-status" id="dataStatus"><i></i> Reading repository data</p></div>
+        <button class="btn console-toggle" id="consoleToggle" aria-expanded="true">Hide</button>
+      </div>
+      <div class="console-body">
+        <nav class="mode-switch" aria-label="View mode">
+          <button data-view="integrated" aria-pressed="true"><b>Integrated</b><span>Aligned profiles</span></button>
+          <button data-view="ct" aria-pressed="false"><b>CT focus</b><span>Core segments</span></button>
+        </nav>
+
+        <section class="group">
+          <h2>Depth selection</h2>
+          <div class="control-row"><label for="sampleSelect">Geochemical interval</label><output id="sampleCount">—</output></div>
+          <select id="sampleSelect" aria-label="Geochemical sample interval"></select>
+          <input id="depthSlider" type="range" min="0" max="31" value="0" step="1" aria-label="Selected geochemical interval">
+          <div class="scale-ends"><span>surface · 0 cm</span><span>base · 163 cm</span></div>
+        </section>
+
+        <section class="group">
+          <h2>Profile variables</h2>
+          <label class="field" for="geoSelect"><span>Geochemistry</span><select id="geoSelect"></select></label>
+          <label class="field" for="modelSelect"><span>Model output</span><select id="modelSelect"></select></label>
+          <div class="switches">
+            <button class="switch" role="switch" aria-checked="true" data-layer="physical">1 cm profiles</button>
+            <button class="switch" role="switch" aria-checked="true" data-layer="means">Interval means</button>
+            <button class="switch" role="switch" aria-checked="true" data-layer="chemistry">Chemistry</button>
+            <button class="switch" role="switch" aria-checked="true" data-layer="model">Model</button>
+          </div>
+        </section>
+
+        <section class="group">
+          <h2>CT segments</h2>
+          <div class="segment-grid" id="segmentGrid"></div>
+        </section>
+
+        <section class="group quality-group">
+          <h2>Data alignment</h2>
+          <p id="qualityText">Waiting for the three CSV files.</p>
+          <button class="exp-btn" id="openProfile">
+            <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 31 14 18l7 6 14-17" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 35h30M5 5v30" fill="none" stroke="currentColor" opacity=".35"/></svg>
+            <span><b>Open profile laboratory</b><small>Inspect every variable on a shared depth axis.</small></span>
+          </button>
+          <button class="exp-btn" id="exportData">
+            <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 5v21m0 0-7-7m7 7 7-7M7 31v4h26v-4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+            <span><b>Export aligned CSV</b><small>One row per geochemical interval.</small></span>
+          </button>
+        </section>
+      </div>
+    </aside>
+
+    <nav class="corner-tools" aria-label="Display tools">
+      <button id="presentButton" class="icon-btn" aria-label="Toggle presentation mode" title="Presentation mode (H)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      <button id="themeButton" class="icon-btn" data-theme-toggle aria-label="Switch color mode" title="Switch color mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg></button>
+      <button id="fullscreenButton" class="icon-btn" aria-label="Enter full screen" title="Full screen (F)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5m6 0h5v5M4 15v5h5m6 0h5v-5"/></svg></button>
+      <button id="helpButton" class="icon-btn" aria-label="About this exhibit" title="About (?)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.6M12 17h.01"/></svg></button>
+    </nav>
+  </main>
+
+  <section class="profile-dock" id="profileDock" hidden aria-label="Profile laboratory">
+    <header>
+      <div><p class="eyebrow">Profile laboratory</p><h2>One core. Two resolutions.</h2></div>
+      <div class="dock-actions"><button class="btn" id="resetZoom">Reset depth</button><button class="close-btn" id="closeProfile" aria-label="Close profile laboratory">×</button></div>
+    </header>
+    <p class="dock-intro">Physical data remain at 1 cm. Interval markers show weighted means over each 5 cm geochemical sample, with the final sample spanning 155–163 cm.</p>
+    <div class="chart-legend" id="chartLegend"></div>
+    <div class="chart-wrap"><svg id="profileChart" role="img" aria-label="Aligned physical and geochemical profiles by depth"></svg><div class="chart-tooltip" id="chartTooltip" hidden></div></div>
+  </section>
+
+  <dialog class="help-modal" id="helpModal">
+    <form method="dialog">
+      <button class="close-btn" aria-label="Close">×</button>
+      <p class="eyebrow">About the exhibit</p>
+      <h2>How the alignment works</h2>
+      <p>The core is treated as one continuous 0–163 cm profile. CT videos provide segment context; quantitative comparison uses the physical profiles and chemical samples.</p>
+      <ol>
+        <li>Brine, porosity, and density retain their original 1 cm resolution.</li>
+        <li>Physical values are overlap-weighted into 5 cm chemical intervals.</li>
+        <li>The final chemical sample is explicitly integrated over 155–163 cm.</li>
+        <li>Missing observations remain missing and coverage is reported; zeros are never substituted.</li>
+      </ol>
+      <p class="modal-note">Keyboard: ←/→ changes sample · Space plays video · H hides interface · F enters full screen · ? opens this panel.</p>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./js/data.js" defer></script>
+  <script src="./js/app.js" defer></script>
+</body>
+</html>
