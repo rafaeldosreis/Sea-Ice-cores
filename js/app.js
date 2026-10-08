@@ -281,7 +281,8 @@ function resize() {
 function setView() {
   const a = isWide() ? null : segs.find(s => s.id === active);
   const aspect = camera.aspect;
-  if (!a) { view.tyGoal = -segs.totalH / 2; view.distGoal = segs.totalH / 2 / Math.tan(THREE.MathUtils.degToRad(17.5)) * 1.3; }
+  if (!a) { view.tyGoal = -segs.totalH / 2; const h = canvas.clientHeight, room = h / Math.max(h - 260, h * 0.5);   // keep the core clear of the title/legend above and the mode bar below
+    view.distGoal = segs.totalH / 2 / Math.tan(THREE.MathUtils.degToRad(17.5)) * 1.05 * room; }
   else {
     view.tyGoal = a.yTop - a.h / 2;
     const needH = a.h * 1.9, needW = (RADIUS * 2 + 1.2) / aspect;
