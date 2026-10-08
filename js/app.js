@@ -24,6 +24,15 @@ const SEGMENTS = [
   { id: 'E',  top: 140, bottom: 165, video: 'Core E 3D view with void analysis.mp4', notes: '' },
 ];
 
+// References cited in the Geochem tab. Fill `full` with the complete citation; until then the author-year form is shown.
+const REFERENCES = [
+  { cite: 'Arnone et al., 2023', full: '' },
+  { cite: 'Ewert and Deming, 2013', full: 'Ewert, M. and Deming, J. W. (2013). Sea Ice Microorganisms: Environmental Constraints and Extracellular Responses. Biology.' },
+  { cite: 'Jensen et al., 2021', full: '' },
+  { cite: 'Jensen and Colombo, 2024', full: '' },
+  { cite: 'Martinez-Ruiz et al., 2020', full: '' },
+];
+
 const METRICS = {
   porosity: { key: 'por',   lo: 'porLo', hi: 'porHi', unit: '%',     label: 'Porosity', digits: 2,
               stops: ['#16264f', '#2a6fd6', '#3fd1c5', '#ffd36b'] },
@@ -522,9 +531,9 @@ function geoHTML() {
     <div><h2>Geochemistry <em>and habitat potential</em></h2>
     <p class="lede" style="margin-top:10px">Two exploratory indices built from 5 cm ICP samples, and a habitat-potential score that combines them. The core is coloured by habitat potential while this tab is open; use the buttons under the core to switch between GI-1, GI-2 and habitat potential.</p></div>
     <div><h3>GI-1 · particles, redox and ligands</h3>
-    <p class="lede">The arithmetic mean of the Ba/Ca, Mn/Fe and Cu/Zn ratios (each scaled 0–1 here). It combines three different signals: particle-associated organic microenvironments and barite formation (Ba/Ca), redox-sensitive metal cycling (Mn/Fe), and ligand-mediated trace-metal availability and biological demand (Cu/Zn).</p></div>
+    <p class="lede">The arithmetic mean of the Ba/Ca, Mn/Fe and Cu/Zn ratios (each scaled 0–1 here). It combines three different signals: particle-associated organic microenvironments and barite formation (Ba/Ca), redox-sensitive metal cycling (Mn/Fe), and ligand-mediated trace-metal availability and biological demand (Cu/Zn) (Ewert and Deming, 2013; Martinez-Ruiz et al., 2020; Jensen et al., 2021; Arnone et al., 2023).</p></div>
     <div><h3>GI-2 · metal enrichment</h3>
-    <p class="lede">The arithmetic mean of the salinity-normalised concentrations of Fe, Mn, Cu and Zn. It flags intervals of enhanced particle reactivity and trace-metal enrichment. Fe and Mn respond to redox changes; Cu and Zn are shaped by organic complexation and biological uptake. High values depart from conservative seawater mixing, consistent with active biogeochemical modification within the ice or near the halocline.</p></div>
+    <p class="lede">The arithmetic mean of the salinity-normalised concentrations of Fe, Mn, Cu and Zn. It flags intervals of enhanced particle reactivity and trace-metal enrichment. Fe and Mn respond to redox changes; Cu and Zn are shaped by organic complexation and biological uptake (Arnone et al., 2023; Jensen and Colombo, 2024). High values depart from conservative seawater mixing, consistent with active biogeochemical modification within the ice or near the halocline.</p></div>
     <div><h3>Integrated habitat potential (IHP)</h3>
     <p class="lede">S/Ca and Ca/K thresholds act as on/off filters that keep only marine, high-salinity conditions; the filtered domain is then combined with GI-1 and GI-2. In the data file the raw score is the mean of GI-1 and GI-2, multiplied by the S/Ca and Ca/K terms, then rescaled so the peak equals 1. <b>IHP is an independent exploratory measure of potential habitat suitability, not direct evidence of biological activity.</b></p></div>
     <ul class="facts">
@@ -539,7 +548,8 @@ function geoHTML() {
     <div class="charts"><h3>Indices with depth</h3>${geoChartHTML(0, CORE_END, 560)}<div class="chart-readout">Hover the chart to inspect a sample.</div></div>
     <div><h3>Jump to a section</h3><table class="seg-table"><tr><th>Section</th><th>Mean habitat</th><th>Peak</th></tr>
       ${segs.map(s => { const g = geoStats(s.top, s.bottom); return `<tr data-id="${s.id}"><td><b>${s.id}</b> <span style="color:var(--muted)">${s.top}–${s.bottom}</span></td><td>${g ? fmt(g.hab, 2) : '—'}</td><td>${g ? fmt(g.bestHab.hab, 2) : '—'}</td></tr>`; }).join('')}
-    </table></div>`;
+    </table></div>
+    <div><h3>References</h3><ul class="refs">${REFERENCES.map(r => `<li>${r.full || r.cite}</li>`).join('')}</ul></div>`;
 }
 
 function bindChart(svg) {
