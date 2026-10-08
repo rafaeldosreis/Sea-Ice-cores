@@ -14,14 +14,14 @@ const RADIUS = 0.6;
 
 // Researcher notes appear in a highlighted box on each tab when filled in.
 const SEGMENTS = [
-  { id: 'A1', top: 0,   bottom: 20,  notes: '' },
-  { id: 'A2', top: 20,  bottom: 40,  notes: '' },
-  { id: 'B1', top: 40,  bottom: 60,  notes: '' },
-  { id: 'B2', top: 60,  bottom: 80,  notes: '' },
-  { id: 'C1', top: 80,  bottom: 100, notes: '' },
-  { id: 'C2', top: 100, bottom: 120, notes: '' },
-  { id: 'D',  top: 120, bottom: 140, notes: '' },
-  { id: 'E',  top: 140, bottom: 165, notes: '' },
+  { id: 'A1', top: 0,   bottom: 20,  video: 'Core A1 3D view with void analysis.mp4', notes: '' },
+  { id: 'A2', top: 20,  bottom: 40,  video: 'Core A2 3D view with void analysis.mp4', notes: '' },
+  { id: 'B1', top: 40,  bottom: 60,  video: 'Core B1 3D view with void analysis.mp4', notes: '' },
+  { id: 'B2', top: 60,  bottom: 80,  video: 'Core B2 3D view with void analysis v2.mp4', notes: '' },
+  { id: 'C1', top: 80,  bottom: 100, video: 'Core C1 3D view with void analysis.mp4', notes: '' },
+  { id: 'C2', top: 100, bottom: 120, video: 'Core C2 3D view with void analysis v2.mp4', notes: '' },
+  { id: 'D',  top: 120, bottom: 140, video: 'Core D 3D view with void analysis.mp4', notes: '' },
+  { id: 'E',  top: 140, bottom: 165, video: 'Core E 3D view with void analysis.mp4', notes: '' },
 ];
 
 const METRICS = {
@@ -423,7 +423,7 @@ function segmentHTML(s) {
     ${s.notes ? `<p class="notes">${s.notes}</p>` : ''}
     <div class="charts"><h3>Profile with depth</h3>${chartHTML(s.top, s.bottom, 320)}<div class="chart-readout">Hover the chart to inspect a depth.</div></div>
     ${geoSectionHTML(s)}
-    <div><h3>CT scan</h3><video controls muted loop playsinline preload="metadata" src="./videos/${s.id}.mp4" onerror="this.parentElement.remove()"></video></div>`;
+    <div><h3>CT scan</h3><video controls muted loop playsinline preload="metadata" src="./${encodeURI(s.video)}" onerror="this.parentElement.remove()"></video></div>`;
 }
 
 /* ---------- charts (depth runs downward, like the core) ---------- */
