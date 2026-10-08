@@ -262,7 +262,7 @@ function applyMode() {
 function drawLegend() {
   const el = $('#legend');
   if (mode === 'ct') {
-    el.innerHTML = `<b>Pore size (illustrative)</b><div class="bar" style="background:linear-gradient(90deg,${JET.join(',')})"></div><div class="ends"><span>small</span><span>large</span></div>`;
+    el.innerHTML = `<b>Void volume (illustrative)</b><div class="bar" style="background:linear-gradient(90deg,${JET.join(',')})"></div><div class="ends"><span>small volume</span><span>large volume</span></div>`;
   } else {
     const m = METRICS[mode], [a, b] = dom[mode];
     el.innerHTML = `<b>${m.label} (${m.unit})</b><div class="bar" style="background:linear-gradient(90deg,${m.stops.join(',')})"></div><div class="ends"><span>${fmt(a, 0)}</span><span>${fmt(b, 0)}</span></div>`;
