@@ -35,7 +35,7 @@ Rows deeper than 165 cm are ignored.
 
 Geochemical columns used: `Microbial_Index` (GI-1, the mean of `Ba_Ca_norm`, `Mn_Fe_norm`, `Cu_Zn_norm`), `Enrichment_Index` (GI-2, the mean of the four `*_star_norm` columns) and `Activity_Index` (shown as integrated habitat potential). Indices are empty above ~40 cm and the page marks the saline transition zone at ~42 cm. `_data/ICP_data.csv` stays in the repository but is not read.
 
-**Note on the CT view:** the pores drawn in "CT voids" mode are generated procedurally from the measured porosity profile (count scales with porosity; size and colour are random). They illustrate the profile and are *not* the segmented CT volumes.
+**Note on the CT view:** the pores drawn in "CT voids" mode are generated procedurally from the measured porosity profile (count scales with porosity; each dot’s colour, from blue to red, stands for a random void volume, like the volume scale in the CT videos). They illustrate the profile and are *not* the segmented CT volumes.
 
 ## Run locally
 
