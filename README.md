@@ -8,7 +8,7 @@ A static, interactive 3D explorer for a 165 cm sea-ice core, built from the CT-s
 - **Colour modes**: CT voids (illustrative), porosity, density, brine.
 - **Tabs**: an Overview plus one tab per section, each with summary statistics, a generated plain-language description, and a depth profile with uncertainty bands. Hovering a profile marks that depth on the 3D core.
 - **Geochemistry**: a *Geochem* tab explains GI-1, GI-2 and integrated habitat potential with a full-depth chart, and each section tab adds its own samples. The core can be coloured by GI-1, GI-2 or habitat potential.
-- **CT video** per section: the `Core * 3D view with void analysis*.mp4` files in the repository root (Git LFS), mapped in the `video` field of each section in `js/app.js`. If a file is missing the video block is hidden.
+- **CT video** per section: the `Core * 3D view with void analysis*.mp4` files in `_videos/` (Git LFS), mapped in the `video` field of each section in `js/app.js`. If a file is missing the video block is hidden.
 - Optional **researcher notes**: fill the `notes` field of a section in `js/app.js` and it appears as a highlighted box on that tab.
 
 | Section | Depth (cm) |
@@ -24,7 +24,7 @@ A static, interactive 3D explorer for a 165 cm sea-ice core, built from the CT-s
 
 ## Data
 
-`Core16_Density.csv` (1 cm rows, depth = row centre) and `geochemistry_model_data.csv` (5 cm samples, depth = sample top) are read. Physical columns used:
+`_data/Core16_Density.csv` (1 cm rows, depth = row centre) and `_data/geochemistry_model_data.csv` (5 cm samples, depth = sample top) are read. Physical columns used:
 
 - `dl_porosity_percent`, `void_lower`, `void_upper` — porosity and its bounds
 - `dl_density_kg_m3`, `dl_density_lower_kg_m3`, `dl_density_upper_kg_m3` — density and its bounds
@@ -32,7 +32,7 @@ A static, interactive 3D explorer for a 165 cm sea-ice core, built from the CT-s
 
 Rows deeper than 165 cm are ignored.
 
-Geochemical columns used: `Microbial_Index` (GI-1, the mean of `Ba_Ca_norm`, `Mn_Fe_norm`, `Cu_Zn_norm`), `Enrichment_Index` (GI-2, the mean of the four `*_star_norm` columns) and `Activity_Index` (shown as integrated habitat potential). Indices are empty above ~40 cm and the page marks the saline transition zone at ~42 cm. `ICP_data.csv` stays in the repository but is not read.
+Geochemical columns used: `Microbial_Index` (GI-1, the mean of `Ba_Ca_norm`, `Mn_Fe_norm`, `Cu_Zn_norm`), `Enrichment_Index` (GI-2, the mean of the four `*_star_norm` columns) and `Activity_Index` (shown as integrated habitat potential). Indices are empty above ~40 cm and the page marks the saline transition zone at ~42 cm. `_data/ICP_data.csv` stays in the repository but is not read.
 
 **Note on the CT view:** the pores drawn in "CT voids" mode are generated procedurally from the measured porosity profile (count scales with porosity; size and colour are random). They illustrate the profile and are *not* the segmented CT volumes.
 
@@ -56,6 +56,6 @@ Open `http://localhost:8000`. Three.js and fonts load from CDNs, so an internet 
 index.html
 css/style.css
 js/app.js
-Core * 3D view with void analysis*.mp4   (Git LFS)
-Core16_Density.csv
+_data/    Core16_Density.csv, ICP_data.csv, geochemistry_model_data.csv
+_videos/  Core * 3D view with void analysis*.mp4 (Git LFS)
 ```
