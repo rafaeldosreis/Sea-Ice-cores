@@ -1,74 +1,61 @@
-# Core 16 — Interactive Sea-Ice Profile
+# Core 16 — Interactive Sea-Ice Explorer
 
-A static, immersive research exhibit aligning CT videos, 1 cm physical profiles, 5 cm geochemical samples, and geochemical model outputs along one 0–163 cm depth axis.
+A static, interactive 3D explorer for a 165 cm sea-ice core, built from the CT-scanned sections A1–E. It shows how **porosity**, **density** and **brine** change with depth.
 
-## Data contract
+## What it does
 
-Place these existing repository files in the project root:
+- **3D core** (Three.js): drag to rotate, click a section to zoom in, `←` / `→` to step through sections.
+- **Colour modes**: CT voids (illustrative), porosity, density, brine.
+- **Tabs**: an Overview plus one tab per section, each with summary statistics, a generated plain-language description, and a depth profile with uncertainty bands. Hovering a profile marks that depth on the 3D core.
+- **Geochemistry**: a *Geochem* tab explains GI-1, GI-2 and integrated habitat potential with a full-depth chart, and each section tab adds its own samples. The core can be coloured by GI-1, GI-2 or habitat potential.
+- Optional **CT video** per section: drop `videos/<ID>.mp4` (e.g. `videos/A1.mp4`). If the file is missing the video block is hidden.
+- Optional **researcher notes**: fill the `notes` field of a section in `js/app.js` and it appears as a highlighted box on that tab.
 
-- `Core16_Density.csv` — 1 cm brine, porosity, and density profiles.
-- `ICP_data.csv` — geochemistry, normally sampled every 5 cm.
-- `geochemistry_model_data.csv` — geochemistry and model outputs.
-- The eight 3D MP4 files already present in the repository.
+| Section | Depth (cm) |
+|---|---|
+| A1 | 0–20 |
+| A2 | 20–40 |
+| B1 | 40–60 |
+| B2 | 60–80 |
+| C1 | 80–100 |
+| C2 | 100–120 |
+| D | 120–140 |
+| E | 140–165 |
 
-The processing pipeline preserves the original 1 cm physical profiles and calculates overlap-weighted interval statistics for each geochemical sample. The final interval is forced to 155–163 cm when its top is approximately 155 cm. Missing data remain missing; coverage is exported explicitly.
+## Data
 
-## Local preview
+`Core16_Density.csv` (1 cm rows, depth = row centre) and `geochemistry_model_data.csv` (5 cm samples, depth = sample top) are read. Physical columns used:
 
-Browsers block CSV loading from `file://`, so serve the folder locally:
+- `dl_porosity_percent`, `void_lower`, `void_upper` — porosity and its bounds
+- `dl_density_kg_m3`, `dl_density_lower_kg_m3`, `dl_density_upper_kg_m3` — density and its bounds
+- `dl_brine_percent`, `brine_lower`, `brine_upper` — brine and its bounds
+
+Rows deeper than 165 cm are ignored.
+
+Geochemical columns used: `Microbial_Index` (GI-1, the mean of `Ba_Ca_norm`, `Mn_Fe_norm`, `Cu_Zn_norm`), `Enrichment_Index` (GI-2, the mean of the four `*_star_norm` columns) and `Activity_Index` (shown as integrated habitat potential). Indices are empty above ~40 cm and the page marks the saline transition zone at ~42 cm. `ICP_data.csv` stays in the repository but is not read.
+
+**Note on the CT view:** the pores drawn in "CT voids" mode are generated procedurally from the measured porosity profile (count scales with porosity; size and colour are random). They illustrate the profile and are *not* the segmented CT volumes.
+
+## Run locally
+
+Browsers block `fetch` from `file://`, so serve the folder:
 
 ```bash
-python -m http.server 8000
+python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000`.
+Open `http://localhost:8000`. Three.js and fonts load from CDNs, so an internet connection is needed.
 
-## Validate the aggregation
+## Deploy
 
-```bash
-python -m pip install pandas numpy
-python scripts/aggregate_data.py
-```
+`.github/workflows/static.yml` publishes the repository root to GitHub Pages on every push to `main` (Settings → Pages → Source: GitHub Actions). Large videos are not part of the repository; keep them under GitHub's file limits or host them elsewhere and point the `src` in `segmentHTML` at the new URL.
 
-This writes:
-
-- `aligned_profile.csv` — one row per geochemical interval.
-- `profile_metadata.json` — detected columns, depth convention, row counts, and segment mapping.
-
-The web app also performs the same aggregation in the browser as a fallback.
-
-## Publish with GitHub Pages
-
-1. Copy this package into the root of `rafaeldosreis/Sea-Ice-cores`.
-2. Commit and push to `main`.
-3. Open **Settings → Pages**.
-4. Under **Build and deployment**, choose **GitHub Actions**.
-5. Run **Deploy Core 16 exhibit** from the Actions tab, or push another commit.
-
-The expected project URL is:
-
-`https://rafaeldosreis.github.io/Sea-Ice-cores/`
-
-The workflow checks out Git LFS objects, runs the aggregation, builds a clean `_site` artifact, and deploys it. If the combined videos exceed 850 MB, it creates smaller H.264 web copies before deployment. GitHub Pages has a 1 GB published-site limit, so externally hosted videos may be preferable if the compressed artifact still exceeds that limit.
-
-## Controls
-
-- Left/Right arrows: previous or next geochemical interval.
-- Space: play or pause the selected CT video.
-- `H`: presentation mode.
-- `F`: full screen.
-- `?`: methodology panel.
-
-## Project structure
+## Structure
 
 ```text
 index.html
 css/style.css
-js/data.js
 js/app.js
-scripts/aggregate_data.py
-.github/workflows/pages.yml
-.nojekyll
+videos/        (optional, A1.mp4 … E.mp4)
+Core16_Density.csv
 ```
-
-All documentation and source comments are in English. The site is static and does not transmit research data to a backend.
