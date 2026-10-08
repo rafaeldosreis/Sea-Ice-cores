@@ -138,7 +138,7 @@ const depthToY = d => {
 const canvas = $('#scene');
 let renderer, scene, camera, coreGroup, marker, raycaster, sprites = [];
 let mode = 'ct', active = 'overview';
-const isWide = () => active === 'overview' || active === 'geo';
+const isWide = () => ['overview', 'geo', 'methods'].includes(active);
 const view = { ty: 0, dist: 30, tyGoal: 0, distGoal: 30, rot: 0, auto: true };
 
 const pointVS = `
@@ -345,7 +345,7 @@ let chartHover = false;
 
 function buildTabs() {
   const nav = $('#tabs');
-  const items = [{ id: 'overview', t: 'Overview', s: '0–165 cm' }, ...segs.map(s => ({ id: s.id, t: s.id, s: `${s.top}–${s.bottom}` })), { id: 'geo', t: 'Geochem', s: 'indices' }];
+  const items = [{ id: 'overview', t: 'Overview', s: '0–165 cm' }, ...segs.map(s => ({ id: s.id, t: s.id, s: `${s.top}–${s.bottom}` })), { id: 'geo', t: 'Geochem', s: 'indices' }, { id: 'methods', t: 'Methods', s: 'CT & AI' }];
   nav.innerHTML = items.map(i => `<button class="tab" role="tab" id="tab-${i.id}" data-id="${i.id}" aria-selected="false">${i.t}<small>${i.s}</small></button>`).join('');
   nav.addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) select(b.dataset.id); });
   addEventListener('keydown', e => {
@@ -361,7 +361,7 @@ function select(id) {
   document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.id === id));
   $('#tab-' + id)?.scrollIntoView({ block: 'nearest', inline: 'center' });
   if (id === 'geo' && !['gi1', 'gi2', 'hab'].includes(mode)) { mode = 'hab'; applyMode(); }
-  $('#tabBody').innerHTML = id === 'overview' ? overviewHTML() : id === 'geo' ? geoHTML() : segmentHTML(segs.find(s => s.id === id));
+  $('#tabBody').innerHTML = id === 'overview' ? overviewHTML() : id === 'geo' ? geoHTML() : id === 'methods' ? methodsHTML() : segmentHTML(segs.find(s => s.id === id));
   $('#tabBody').scrollTop = 0;
   $('#tabBody').setAttribute('aria-labelledby', 'tab-' + id);
   document.querySelectorAll('.seg-table tr[data-id]').forEach(tr => tr.onclick = () => select(tr.dataset.id));
@@ -477,6 +477,27 @@ function geoChartHTML(top, bottom, H) {
   return svg + `<rect class="hit" x="${L}" y="${T}" width="${W - L}" height="${ih}" fill="transparent"/></svg>`;
 }
 
+function methodsHTML() {
+  const steps = [
+    ['Data acquisition', 'The core was divided into segments and scanned with a North Star Imaging X5000 industrial CT system at the Jet Propulsion Laboratory (JPL) at 56 µm voxel resolution. Sections were held in a custom cryogenic holder surrounded by dry ice at −15 °C or below, preserving the in situ microstructure and limiting melting and artificial brine drainage.'],
+    ['3D reconstruction', 'Image stacks were imported into Dragonfly, reconstructed, registered and vertically aligned into one continuous volume. A cylindrical region of interest isolated the core interior and excluded the holder, peripheral voxels and edge artifacts.'],
+    ['Segmentation', 'A supervised 3D U-Net trained on manually annotated images classified every voxel as ice, void or brine. Intensity thresholding was used as a complementary check on the phase classification.'],
+    ['Processing and quantification', 'Segmented objects were filtered to remove noise and artifacts, then described by volume, centroid, sphericity, grayscale intensity, extent, anisotropy and orientation. Morphological criteria picked out vertically elongated, interconnected structures, interpreted as pore network and potential brine pathways.'],
+    ['Phase abundance profiles', 'Segmented images were exported as false-colour PNGs and classified by colour in MATLAB to give the relative abundance of ice, voids and brine per section. The results were exported to CSV and assembled into the vertical profiles shown here.'],
+  ];
+  return `
+    <div><h2>How the data <em>were made</em></h2>
+    <p class="lede" style="margin-top:10px">From CT scan to depth profile: the steps behind the porosity, brine and density curves.</p></div>
+    <ol class="steps">${steps.map(([t, d]) => `<li><b>${t}</b><p>${d}</p></li>`).join('')}</ol>
+    <div><h3>Where this appears in the data</h3>
+    <ul class="facts">
+      <li><b>Porosity</b> and <b>brine</b> are the void and brine fractions from the phase classification, per 1 cm slice, with lower/upper bounds.</li>
+      <li><b>Pore network</b> is the share of the volume belonging to the elongated, interconnected structures.</li>
+      <li><b>Density</b> is reported with its own bounds. Its near-perfect inverse relation to porosity suggests it is derived from the phase fractions.</li>
+      <li>The coloured dots in the 3D “CT voids” mode are illustrative. They are drawn from the porosity profile and are not the segmented objects. The section videos show the real void analysis, coloured by void volume.</li>
+    </ul></div>`;
+}
+
 function geoStats(top, bottom) {
   const gs = geo.filter(g => g.gi1 != null && g.mid >= top && g.mid < bottom);
   if (!gs.length) return null;
@@ -545,7 +566,7 @@ Promise.all([load(DATA_FILE), load(GEO_FILE)])
     prepare(phys, g);
     buildScene(); buildTabs();
     const hash = location.hash.slice(1);
-    select(segs.some(s => s.id === hash) || hash === 'geo' ? hash : 'overview');
+    select(segs.some(s => s.id === hash) || hash === 'geo' || hash === 'methods' ? hash : 'overview');
     document.fonts?.ready.then(() => segs.forEach(s => { s.label.material.map.dispose(); s.label.material.map = makeLabel(s).material.map; }));
   })
   .catch(err => {

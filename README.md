@@ -9,6 +9,7 @@ A static, interactive 3D explorer for a 165 cm sea-ice core, built from the CT-s
 - **Tabs**: an Overview plus one tab per section, each with summary statistics, a generated plain-language description, and a depth profile with uncertainty bands. Hovering a profile marks that depth on the 3D core.
 - **Geochemistry**: a *Geochem* tab explains GI-1, GI-2 and integrated habitat potential with a full-depth chart, and each section tab adds its own samples. The core can be coloured by GI-1, GI-2 or habitat potential.
 - **CT video** per section: the `Core * 3D view with void analysis*.mp4` files in `_videos/` (Git LFS), mapped in the `video` field of each section in `js/app.js`. If a file is missing the video block is hidden.
+- **Methods** tab: the CT acquisition, 3D U-Net segmentation and quantification workflow behind the profiles.
 - Optional **researcher notes**: fill the `notes` field of a section in `js/app.js` and it appears as a highlighted box on that tab.
 
 | Section | Depth (cm) |
