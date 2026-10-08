@@ -520,12 +520,16 @@ function geoHTML() {
   const r = pearson(valid.map(g => g.hab), pores);
   return `
     <div><h2>Geochemistry <em>and habitat potential</em></h2>
-    <p class="lede" style="margin-top:10px">Chemical indices from 5 cm samples (ICP) turn trace-element ratios into 0–1 scores. The core is coloured by habitat potential while this tab is open; use the buttons under the core to switch between GI-1, GI-2 and habitat potential.</p></div>
+    <p class="lede" style="margin-top:10px">Two exploratory indices built from 5 cm ICP samples, and a habitat-potential score that combines them. The core is coloured by habitat potential while this tab is open; use the buttons under the core to switch between GI-1, GI-2 and habitat potential.</p></div>
+    <div><h3>GI-1 · particles, redox and ligands</h3>
+    <p class="lede">The arithmetic mean of the Ba/Ca, Mn/Fe and Cu/Zn ratios (each scaled 0–1 here). It combines three different signals: particle-associated organic microenvironments and barite formation (Ba/Ca), redox-sensitive metal cycling (Mn/Fe), and ligand-mediated trace-metal availability and biological demand (Cu/Zn).</p></div>
+    <div><h3>GI-2 · metal enrichment</h3>
+    <p class="lede">The arithmetic mean of the salinity-normalised concentrations of Fe, Mn, Cu and Zn. It flags intervals of enhanced particle reactivity and trace-metal enrichment. Fe and Mn respond to redox changes; Cu and Zn are shaped by organic complexation and biological uptake. High values depart from conservative seawater mixing, consistent with active biogeochemical modification within the ice or near the halocline.</p></div>
+    <div><h3>Integrated habitat potential (IHP)</h3>
+    <p class="lede">S/Ca and Ca/K thresholds act as on/off filters that keep only marine, high-salinity conditions; the filtered domain is then combined with GI-1 and GI-2. In the data file the raw score is the mean of GI-1 and GI-2, multiplied by the S/Ca and Ca/K terms, then rescaled so the peak equals 1. <b>IHP is an independent exploratory measure of potential habitat suitability, not direct evidence of biological activity.</b></p></div>
     <ul class="facts">
-      <li><b>GI-1</b> is the mean of three normalised ratios: Ba/Ca, Mn/Fe and Cu/Zn.</li>
-      <li><b>GI-2</b> is the mean of four normalised element terms: Fe*, Mn*, Cu* and Zn*.</li>
-      <li><b>Integrated habitat potential</b> is the model's activity index (0–1), which also weighs S/Ca and Ca/K. The colour bands in the 3D view are interpolated between samples.</li>
       <li>Indices are only computed below the saline transition zone (~${SALINE} cm); above it the core shows no signal.</li>
+      <li>The colour bands in the 3D view are interpolated between 5 cm samples.</li>
     </ul>
     <div class="stats">
       ${stat('Highest habitat potential', fmt(top3[0].hab, 2), '', `${top3[0].top}–${top3[0].bottom} cm`)}
