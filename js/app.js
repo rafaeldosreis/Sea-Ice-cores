@@ -3,8 +3,8 @@
 
 /* ---------- configuration ---------- */
 
-const DATA_FILE = './Core16_Density.csv';
-const GEO_FILE = './geochemistry_model_data.csv';
+const DATA_FILE = './_data/Core16_Density.csv';
+const GEO_FILE = './_data/geochemistry_model_data.csv';
 const SALINE = 42;             // cm; saline transition zone (from the profile figure)
 const CORE_END = 165;          // cm; the CSV runs a little deeper than the physical core
 const PURE_ICE = 917;          // kg/m³ reference density of bubble-free ice
@@ -423,7 +423,7 @@ function segmentHTML(s) {
     ${s.notes ? `<p class="notes">${s.notes}</p>` : ''}
     <div class="charts"><h3>Profile with depth</h3>${chartHTML(s.top, s.bottom, 320)}<div class="chart-readout">Hover the chart to inspect a depth.</div></div>
     ${geoSectionHTML(s)}
-    <div><h3>CT scan</h3><video controls muted loop playsinline preload="metadata" src="./${encodeURI(s.video)}" onerror="this.parentElement.remove()"></video></div>`;
+    <div><h3>CT scan</h3><video controls muted loop playsinline preload="metadata" src="./_videos/${encodeURI(s.video)}" onerror="this.parentElement.remove()"></video></div>`;
 }
 
 /* ---------- charts (depth runs downward, like the core) ---------- */
