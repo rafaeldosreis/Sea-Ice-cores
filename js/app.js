@@ -24,6 +24,15 @@ const SEGMENTS = [
   { id: 'E',  top: 140, bottom: 165, video: 'Core E 3D view with void analysis.mp4', notes: '' },
 ];
 
+// References cited in the Geochem tab. Fill `full` with the complete citation; until then the author-year form is shown.
+const REFERENCES = [
+  { cite: 'Arnone et al., 2023', full: '' },
+  { cite: 'Ewert and Deming, 2013', full: 'Ewert, M. and Deming, J. W. (2013). Sea Ice Microorganisms: Environmental Constraints and Extracellular Responses. Biology.' },
+  { cite: 'Jensen et al., 2021', full: '' },
+  { cite: 'Jensen and Colombo, 2024', full: '' },
+  { cite: 'Martinez-Ruiz et al., 2020', full: '' },
+];
+
 const METRICS = {
   porosity: { key: 'por',   lo: 'porLo', hi: 'porHi', unit: '%',     label: 'Porosity', digits: 2,
               stops: ['#16264f', '#2a6fd6', '#3fd1c5', '#ffd36b'] },
@@ -138,7 +147,7 @@ const depthToY = d => {
 const canvas = $('#scene');
 let renderer, scene, camera, coreGroup, marker, raycaster, sprites = [];
 let mode = 'ct', active = 'overview';
-const isWide = () => active === 'overview' || active === 'geo';
+const isWide = () => ['overview', 'geo', 'methods'].includes(active);
 const view = { ty: 0, dist: 30, tyGoal: 0, distGoal: 30, rot: 0, auto: true };
 
 const pointVS = `
@@ -345,7 +354,7 @@ let chartHover = false;
 
 function buildTabs() {
   const nav = $('#tabs');
-  const items = [{ id: 'overview', t: 'Overview', s: '0–165 cm' }, ...segs.map(s => ({ id: s.id, t: s.id, s: `${s.top}–${s.bottom}` })), { id: 'geo', t: 'Geochem', s: 'indices' }];
+  const items = [{ id: 'overview', t: 'Overview', s: '0–165 cm' }, ...segs.map(s => ({ id: s.id, t: s.id, s: `${s.top}–${s.bottom}` })), { id: 'geo', t: 'Geochem', s: 'indices' }, { id: 'methods', t: 'Methods', s: 'CT & AI' }];
   nav.innerHTML = items.map(i => `<button class="tab" role="tab" id="tab-${i.id}" data-id="${i.id}" aria-selected="false">${i.t}<small>${i.s}</small></button>`).join('');
   nav.addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) select(b.dataset.id); });
   addEventListener('keydown', e => {
@@ -361,7 +370,7 @@ function select(id) {
   document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.id === id));
   $('#tab-' + id)?.scrollIntoView({ block: 'nearest', inline: 'center' });
   if (id === 'geo' && !['gi1', 'gi2', 'hab'].includes(mode)) { mode = 'hab'; applyMode(); }
-  $('#tabBody').innerHTML = id === 'overview' ? overviewHTML() : id === 'geo' ? geoHTML() : segmentHTML(segs.find(s => s.id === id));
+  $('#tabBody').innerHTML = id === 'overview' ? overviewHTML() : id === 'geo' ? geoHTML() : id === 'methods' ? methodsHTML() : segmentHTML(segs.find(s => s.id === id));
   $('#tabBody').scrollTop = 0;
   $('#tabBody').setAttribute('aria-labelledby', 'tab-' + id);
   document.querySelectorAll('.seg-table tr[data-id]').forEach(tr => tr.onclick = () => select(tr.dataset.id));
@@ -477,6 +486,27 @@ function geoChartHTML(top, bottom, H) {
   return svg + `<rect class="hit" x="${L}" y="${T}" width="${W - L}" height="${ih}" fill="transparent"/></svg>`;
 }
 
+function methodsHTML() {
+  const steps = [
+    ['Data acquisition', 'The core was divided into segments and scanned with a North Star Imaging X5000 industrial CT system at the Jet Propulsion Laboratory (JPL) at 56 µm voxel resolution. Sections were held in a custom cryogenic holder surrounded by dry ice at −15 °C or below, preserving the in situ microstructure and limiting melting and artificial brine drainage.'],
+    ['3D reconstruction', 'Image stacks were imported into Dragonfly, reconstructed, registered and vertically aligned into one continuous volume. A cylindrical region of interest isolated the core interior and excluded the holder, peripheral voxels and edge artifacts.'],
+    ['Segmentation', 'A supervised 3D U-Net trained on manually annotated images classified every voxel as ice, void or brine. Intensity thresholding was used as a complementary check on the phase classification.'],
+    ['Processing and quantification', 'Segmented objects were filtered to remove noise and artifacts, then described by volume, centroid, sphericity, grayscale intensity, extent, anisotropy and orientation. Morphological criteria picked out vertically elongated, interconnected structures, interpreted as pore network and potential brine pathways.'],
+    ['Phase abundance profiles', 'Segmented images were exported as false-colour PNGs and classified by colour in MATLAB to give the relative abundance of ice, voids and brine per section. The results were exported to CSV and assembled into the vertical profiles shown here.'],
+  ];
+  return `
+    <div><h2>How the data <em>were made</em></h2>
+    <p class="lede" style="margin-top:10px">From CT scan to depth profile: the steps behind the porosity, brine and density curves.</p></div>
+    <ol class="steps">${steps.map(([t, d]) => `<li><b>${t}</b><p>${d}</p></li>`).join('')}</ol>
+    <div><h3>Where this appears in the data</h3>
+    <ul class="facts">
+      <li><b>Porosity</b> and <b>brine</b> are the void and brine fractions from the phase classification, per 1 cm slice, with lower/upper bounds.</li>
+      <li><b>Pore network</b> is the share of the volume belonging to the elongated, interconnected structures.</li>
+      <li><b>Density</b> is reported with its own bounds. Its near-perfect inverse relation to porosity suggests it is derived from the phase fractions.</li>
+      <li>The coloured dots in the 3D “CT voids” mode are illustrative. They are drawn from the porosity profile and are not the segmented objects. The section videos show the real void analysis, coloured by void volume.</li>
+    </ul></div>`;
+}
+
 function geoStats(top, bottom) {
   const gs = geo.filter(g => g.gi1 != null && g.mid >= top && g.mid < bottom);
   if (!gs.length) return null;
@@ -499,12 +529,16 @@ function geoHTML() {
   const r = pearson(valid.map(g => g.hab), pores);
   return `
     <div><h2>Geochemistry <em>and habitat potential</em></h2>
-    <p class="lede" style="margin-top:10px">Chemical indices from 5 cm samples (ICP) turn trace-element ratios into 0–1 scores. The core is coloured by habitat potential while this tab is open; use the buttons under the core to switch between GI-1, GI-2 and habitat potential.</p></div>
+    <p class="lede" style="margin-top:10px">Two exploratory indices built from 5 cm ICP samples, and a habitat-potential score that combines them. The core is coloured by habitat potential while this tab is open; use the buttons under the core to switch between GI-1, GI-2 and habitat potential.</p></div>
+    <div><h3>GI-1 · particles, redox and ligands</h3>
+    <p class="lede">The arithmetic mean of the Ba/Ca, Mn/Fe and Cu/Zn ratios (each scaled 0–1 here). It combines three different signals: particle-associated organic microenvironments and barite formation (Ba/Ca), redox-sensitive metal cycling (Mn/Fe), and ligand-mediated trace-metal availability and biological demand (Cu/Zn) (Ewert and Deming, 2013; Martinez-Ruiz et al., 2020; Jensen et al., 2021; Arnone et al., 2023).</p></div>
+    <div><h3>GI-2 · metal enrichment</h3>
+    <p class="lede">The arithmetic mean of the salinity-normalised concentrations of Fe, Mn, Cu and Zn. It flags intervals of enhanced particle reactivity and trace-metal enrichment. Fe and Mn respond to redox changes; Cu and Zn are shaped by organic complexation and biological uptake (Arnone et al., 2023; Jensen and Colombo, 2024). High values depart from conservative seawater mixing, consistent with active biogeochemical modification within the ice or near the halocline.</p></div>
+    <div><h3>Integrated habitat potential (IHP)</h3>
+    <p class="lede">S/Ca and Ca/K thresholds act as on/off filters that keep only marine, high-salinity conditions; the filtered domain is then combined with GI-1 and GI-2. In the data file the raw score is the mean of GI-1 and GI-2, multiplied by the S/Ca and Ca/K terms, then rescaled so the peak equals 1. <b>IHP is an independent exploratory measure of potential habitat suitability, not direct evidence of biological activity.</b></p></div>
     <ul class="facts">
-      <li><b>GI-1</b> is the mean of three normalised ratios: Ba/Ca, Mn/Fe and Cu/Zn.</li>
-      <li><b>GI-2</b> is the mean of four normalised element terms: Fe*, Mn*, Cu* and Zn*.</li>
-      <li><b>Integrated habitat potential</b> is the model's activity index (0–1), which also weighs S/Ca and Ca/K. The colour bands in the 3D view are interpolated between samples.</li>
       <li>Indices are only computed below the saline transition zone (~${SALINE} cm); above it the core shows no signal.</li>
+      <li>The colour bands in the 3D view are interpolated between 5 cm samples.</li>
     </ul>
     <div class="stats">
       ${stat('Highest habitat potential', fmt(top3[0].hab, 2), '', `${top3[0].top}–${top3[0].bottom} cm`)}
@@ -514,7 +548,8 @@ function geoHTML() {
     <div class="charts"><h3>Indices with depth</h3>${geoChartHTML(0, CORE_END, 560)}<div class="chart-readout">Hover the chart to inspect a sample.</div></div>
     <div><h3>Jump to a section</h3><table class="seg-table"><tr><th>Section</th><th>Mean habitat</th><th>Peak</th></tr>
       ${segs.map(s => { const g = geoStats(s.top, s.bottom); return `<tr data-id="${s.id}"><td><b>${s.id}</b> <span style="color:var(--muted)">${s.top}–${s.bottom}</span></td><td>${g ? fmt(g.hab, 2) : '—'}</td><td>${g ? fmt(g.bestHab.hab, 2) : '—'}</td></tr>`; }).join('')}
-    </table></div>`;
+    </table></div>
+    <div><h3>References</h3><ul class="refs">${REFERENCES.map(r => `<li>${r.full || r.cite}</li>`).join('')}</ul></div>`;
 }
 
 function bindChart(svg) {
@@ -545,7 +580,7 @@ Promise.all([load(DATA_FILE), load(GEO_FILE)])
     prepare(phys, g);
     buildScene(); buildTabs();
     const hash = location.hash.slice(1);
-    select(segs.some(s => s.id === hash) || hash === 'geo' ? hash : 'overview');
+    select(segs.some(s => s.id === hash) || hash === 'geo' || hash === 'methods' ? hash : 'overview');
     document.fonts?.ready.then(() => segs.forEach(s => { s.label.material.map.dispose(); s.label.material.map = makeLabel(s).material.map; }));
   })
   .catch(err => {
